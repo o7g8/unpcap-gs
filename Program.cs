@@ -10,6 +10,10 @@ using var stdin = Console.OpenStandardInput();
 using var stdout = Console.OpenStandardOutput();
 
 var reader = new PcapReader(stdin);
+foreach (var record in reader)
+{
+    Console.WriteLine($"{record.Header.InclLen} {record.Header.OrigLen}");
+}
 
 async Task<int> WriteToStream(Stream stream, byte[] buffer, int length)
 {
