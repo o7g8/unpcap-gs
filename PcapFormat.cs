@@ -3,6 +3,11 @@ using System.Runtime.InteropServices;
 
 namespace unpcap;
 
+struct Constants {
+    public  const int PcapFileHeader_Length = 24;
+    public  const int PcapRecordHeader_Length = 16;
+}
+
 [Flags]
 public enum MagicNumber : System.UInt32
 {
@@ -17,12 +22,8 @@ public enum LinkLayer : System.UInt32
     Ethernet = 0x00000001
 }
 
-struct Constants {
-    public  const int PcapFileHeader_Length = 24;
-    public  const int PcapRecordHeader_Length = 16;
-}
-
-//https://www.netresec.com/?page=Blog&month=2022-10&post=What-is-a-PCAP-file
+// https://wiki.wireshark.org/Development/LibpcapFileFormat
+// https://www.netresec.com/?page=Blog&month=2022-10&post=What-is-a-PCAP-file
 [StructLayout(LayoutKind.Sequential)]
 internal struct PcapFileHeader
 {

@@ -2,6 +2,7 @@ using System.Collections;
 
 namespace unpcap;
 
+// TODO: look into IEnumerableAsync<T>
 public class PcapReader : IEnumerable<PcapRecord>
 {
     private System.UInt32 capturedBytes;

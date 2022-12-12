@@ -1,11 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
-// f we want to use a span-like class in asynchronous programming we could take advantage of Memory<> and ReadOnlyMemory<>
-
-using System.Runtime.InteropServices;
+// If we want to use a span-like class in asynchronous programming we could take advantage of Memory<> and ReadOnlyMemory<>
 using CommandLine;
 using unpcap;
 
-
+// TODO: test BufferedStream <https://learn.microsoft.com/en-us/dotnet/api/system.io.bufferedstream?view=net-7.0>
 using var stdin = Console.OpenStandardInput();
 using var stdout = Console.OpenStandardOutput();
 
@@ -20,11 +18,20 @@ foreach (var record in reader)
 }
 */
 
-// parallel
+/*
+    The concurrency should look like:
+    - reader runs on own (main) thread
+    - parsers run on their own threads (managed by PLINQ)
+    - writer to stdout runs on its own thread.
+*/
+
+// parallel TODO: play with concurrency level
 var query = reader
     .AsParallel()
     .AsOrdered()
     .Select(record => parser.Parse(record.Record));
+
+// TODO: write to stream in another task/thread 
 foreach (var item in query)
 {
     await WriteToStream(stdout, item);
