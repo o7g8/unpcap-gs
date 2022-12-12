@@ -10,9 +10,24 @@ using var stdin = Console.OpenStandardInput();
 using var stdout = Console.OpenStandardOutput();
 
 var reader = new PcapReader(stdin);
+var parser = new PacketParser(reader.LinkLayer, reader.ByteOrder);
+
+/*
 foreach (var record in reader)
 {
     Console.WriteLine($"{record.Header.InclLen} {record.Header.OrigLen}");
+    var result = parser.Parse(record.Record);
+}
+*/
+
+// parallel
+var query = reader
+    .AsParallel()
+    .AsOrdered()
+    .Select(record => parser.Parse(record.Record));
+foreach (var item in query)
+{
+    await WriteToStream(stdout, item, item.Length);
 }
 
 async Task<int> WriteToStream(Stream stream, byte[] buffer, int length)
@@ -25,7 +40,7 @@ async Task<int> WriteToStream(Stream stream, byte[] buffer, int length)
 public class CommandLineOptions
 {
     [Option('e', "endianness", Required = true, HelpText = "Identical (0), swapped (1)")]
-    public int Endpoint { get; set; }
+    public int Endianness { get; set; }
 
     [Option('h', "has-file-header", Required = true, Default = true, HelpText = "Indicate if the stream has a PCAP file header")]
     public bool HasFileHeader { get; set; }

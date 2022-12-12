@@ -1,14 +1,15 @@
 using System.Collections;
-using System.Runtime.InteropServices;
 
 namespace unpcap;
 
 public class PcapReader : IEnumerable<PcapRecord>
 {
-    private MagicNumber byteOrder;
     private System.UInt32 capturedBytes;
     private readonly Stream input;
     private bool noData = false;
+
+    public MagicNumber ByteOrder { get; private set; }
+    public LinkLayer LinkLayer { get; private set; }
 
     public PcapReader(Stream input)
     {
@@ -17,7 +18,8 @@ public class PcapReader : IEnumerable<PcapRecord>
         if(eof) {
             noData = true;
         } else {
-            byteOrder = header.MagicNumber;
+            ByteOrder = header.MagicNumber;
+            LinkLayer = header.Network;
             capturedBytes = header.SnapLen;
         }
     }
@@ -47,22 +49,6 @@ public class PcapReader : IEnumerable<PcapRecord>
         return this.GetEnumerator();
     }
 
-    // https://www.codeproject.com/Articles/5296628/Fast-Conversions-between-tightly-packed-Structures
-    private S ArrayToStructure<S>(byte[] abSource) where S : struct
-    {
-        var iHandle = GCHandle.Alloc(abSource, GCHandleType.Pinned);
-        S rTarget;
-        try
-        {
-            rTarget = Marshal.PtrToStructure<S>(iHandle.AddrOfPinnedObject());
-        }
-        finally
-        {
-            iHandle.Free();
-        }
-        return rTarget;
-    }
-
     # region Blocking
     // returns (eof, data)
     private (bool, PcapRecordHeader) ReadRecordHeader(Stream stream)
@@ -75,7 +61,7 @@ public class PcapReader : IEnumerable<PcapRecord>
         if(length != Constants.PcapRecordHeader_Length) {
             throw new Exception("EOF: too short PCAP record header.");
         }
-        return (false, ArrayToStructure<PcapRecordHeader>(buffer));
+        return (false, Tools.ArrayToStructure<PcapRecordHeader>(buffer));
     }
 
     private (bool, PcapFileHeader) ReadFileHeader(Stream stream)
@@ -88,7 +74,7 @@ public class PcapReader : IEnumerable<PcapRecord>
         if(length != Constants.PcapFileHeader_Length) {
             throw new Exception("EOF: too short PCAP file header.");
         }
-        return (false, ArrayToStructure<PcapFileHeader>(buffer));
+        return (false, Tools.ArrayToStructure<PcapFileHeader>(buffer));
     }
 
     private int ReadFull(Stream stream, byte[] buffer, int length)
@@ -113,13 +99,13 @@ public class PcapReader : IEnumerable<PcapRecord>
     async Task<PcapRecordHeader> ReadRecordHeaderAsync(Stream stream, byte[] buffer)
     {
         await ReadFullAsync(input, buffer, Constants.PcapRecordHeader_Length);
-        return ArrayToStructure<PcapRecordHeader>(buffer);
+        return Tools.ArrayToStructure<PcapRecordHeader>(buffer);
     }
 
     async Task<PcapFileHeader> ReadFileHeaderAsync(Stream stream, byte[] buffer)
     {
         await ReadFullAsync(input, buffer, Constants.PcapFileHeader_Length);
-        return ArrayToStructure<PcapFileHeader>(buffer);
+        return Tools.ArrayToStructure<PcapFileHeader>(buffer);
     }
 
     async Task<int> ReadFullAsync(Stream stream, byte[] buffer, int length)

@@ -4,10 +4,17 @@ using System.Runtime.InteropServices;
 namespace unpcap;
 
 [Flags]
-internal enum MagicNumber : System.UInt32
+public enum MagicNumber : System.UInt32
 {
     Identical = 0xa1b2c3d4,
     Swapped = 0xd4c3b2a1
+}
+
+[Flags]
+public enum LinkLayer : System.UInt32
+{
+    NullLoopback = 0x00000000,
+    Ethernet = 0x00000001
 }
 
 struct Constants {
@@ -15,17 +22,17 @@ struct Constants {
     public  const int PcapRecordHeader_Length = 16;
 }
 
+//https://www.netresec.com/?page=Blog&month=2022-10&post=What-is-a-PCAP-file
 [StructLayout(LayoutKind.Sequential)]
 internal struct PcapFileHeader
 {
-    //System.UInt32 MagicNumber; // 0xa1b2c3d4 (identical) or 0xd4c3b2a1 (swapped)
     public MagicNumber MagicNumber; /* magic number */
     public System.UInt16 VersionMajor; /* major version number */
     public System.UInt16 VersionMinor; /* minor version number */
     public System.UInt32 ThisZone; /* GMT to local correction */
     public System.UInt32 SigFigs; /* accuracy of timestamps */
     public System.UInt32 SnapLen; /* max length of captured packets, in octets */
-    public System.UInt32 Network; /* data link type */
+    public LinkLayer Network; /* data link type */
 }
 
 [StructLayout(LayoutKind.Sequential)]
