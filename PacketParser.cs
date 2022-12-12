@@ -14,7 +14,7 @@ internal class PacketParser
         this.byteOrder = byteOrder;
     }
 
-    internal byte[] Parse(byte[] record)
+    public ReadOnlyMemory<byte> Parse(byte[] record)
     {
         if(linkLayer == LinkLayer.NullLoopback) {
             return ParseLoopback(record);
@@ -25,16 +25,16 @@ internal class PacketParser
         }
     }
 
-    private byte[] ParseEthernet(byte[] record)
+    private ReadOnlyMemory<byte> ParseEthernet(byte[] record)
     {
         throw new NotImplementedException();
     }
 
-    private byte[] ParseLoopback(byte[] record)
+    private ReadOnlyMemory<byte> ParseLoopback(byte[] record)
     {
         var offset = ProtocolConstants.NullLoopbackHeader_Length
         + ProtocolConstants.IpProtocolHeader_Length
         + ProtocolConstants.UdpProtocolHeader_Length;
-        return record[offset..]; // TODO: return SPAN/Memory!!!
+        return new ReadOnlyMemory<byte>(record, offset, record.Length - offset);
     }
 }

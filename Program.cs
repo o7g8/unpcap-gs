@@ -27,14 +27,13 @@ var query = reader
     .Select(record => parser.Parse(record.Record));
 foreach (var item in query)
 {
-    await WriteToStream(stdout, item, item.Length);
+    await WriteToStream(stdout, item);
 }
 
-async Task<int> WriteToStream(Stream stream, byte[] buffer, int length)
+async Task WriteToStream(Stream stream, ReadOnlyMemory<byte> buffer)
 {
-    await stream.WriteAsync(buffer, 0, length);
+    await stream.WriteAsync(buffer);
     await stream.FlushAsync();
-    return length;
 }
 
 public class CommandLineOptions
