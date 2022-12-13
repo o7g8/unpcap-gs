@@ -4,19 +4,11 @@ using CommandLine;
 using unpcap;
 
 // TODO: test BufferedStream <https://learn.microsoft.com/en-us/dotnet/api/system.io.bufferedstream?view=net-7.0>
-using var stdin = Console.OpenStandardInput();
-using var stdout = Console.OpenStandardOutput();
+using var stdin = new BufferedStream(Console.OpenStandardInput());
+using var stdout = new BufferedStream(Console.OpenStandardOutput());
 
 var reader = new PcapReader(stdin);
 var parser = new PacketParser(reader.LinkLayer, reader.ByteOrder);
-
-/*
-foreach (var record in reader)
-{
-    Console.WriteLine($"{record.Header.InclLen} {record.Header.OrigLen}");
-    var result = parser.Parse(record.Record);
-}
-*/
 
 /*
     The concurrency should look like:
@@ -32,15 +24,21 @@ var query = reader
     .Select(record => parser.ParseEthernet(record.Record));
 
 // TODO: write to stream in another task/thread 
-foreach (var item in query)
-{
-    await WriteToStream(stdout, item);
-}
+var writer = Task.Run(async () => await WriteResult(stdout, query));
+writer.Wait();
 
 async Task WriteToStream(Stream stream, ReadOnlyMemory<byte> buffer)
 {
     await stream.WriteAsync(buffer);
     await stream.FlushAsync();
+}
+
+async Task WriteResult(BufferedStream stdout, ParallelQuery<ReadOnlyMemory<byte>> query)
+{
+    foreach (var item in query)
+    {
+        await WriteToStream(stdout, item);
+    }
 }
 
 public class CommandLineOptions
