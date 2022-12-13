@@ -10,17 +10,10 @@ using var stdout = new BufferedStream(Console.OpenStandardOutput());
 var reader = new PcapReader(stdin);
 var parser = new PacketParser(reader.LinkLayer, reader.ByteOrder);
 
-/*
-    The concurrency should look like:
-    - reader runs on own (main) thread
-    - parsers run on their own threads (managed by PLINQ)
-    - writer to stdout runs on its own thread.
-*/
-
-// parallel TODO: play with concurrency level
 var query = reader
     .AsParallel()
     .AsOrdered()
+    .WithDegreeOfParallelism(2)
     .Select(record => parser.ParseEthernet(record.Record));
 
 // TODO: write to stream in another task/thread 
@@ -33,7 +26,7 @@ async Task WriteToStream(Stream stream, ReadOnlyMemory<byte> buffer)
     await stream.FlushAsync();
 }
 
-async Task WriteResult(BufferedStream stdout, ParallelQuery<ReadOnlyMemory<byte>> query)
+async Task WriteResult(BufferedStream stdout, IEnumerable<ReadOnlyMemory<byte>> query)
 {
     foreach (var item in query)
     {
