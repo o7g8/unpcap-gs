@@ -25,10 +25,18 @@ internal class PacketParser
         }
     }
 
-    private ReadOnlyMemory<byte> ParseEthernet(byte[] record)
+    public ReadOnlyMemory<byte> ParseEthernet(byte[] record)
     {
         // TODO: need to test and filter non-IP and non-UDP/TCP, best to see the actual DigIF example
         // https://code.amazon.com/packages/Pseudo-sat/blobs/bc6e6559be42c5265e0e8ff24fc18ee46bd13936/--/python/pseudo-sat.py#L266
+        var offset = ProtocolConstants.EthernetHeader_Length
+        + ProtocolConstants.IpProtocolHeader_Length
+        + ProtocolConstants.UdpProtocolHeader_Length;
+        return new ReadOnlyMemory<byte>(record, offset, record.Length - offset);
+    }
+
+    private static ReadOnlyMemory<byte> ParseEthernetWithVlan(byte[] record)
+    {
         var offset = ProtocolConstants.EthernetHeader_Length
         + ProtocolConstants.VlanHeader_Length
         + ProtocolConstants.IpProtocolHeader_Length

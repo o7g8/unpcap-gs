@@ -29,7 +29,7 @@ foreach (var record in reader)
 var query = reader
     .AsParallel()
     .AsOrdered()
-    .Select(record => parser.Parse(record.Record));
+    .Select(record => parser.ParseEthernet(record.Record));
 
 // TODO: write to stream in another task/thread 
 foreach (var item in query)
