@@ -64,6 +64,8 @@ PC=Mac, InputStorage=SDD, Alloc=Array, Return=Memory, PLINQ=2, Streams=buffered,
 PC=Mac, InputStorage=SDD, Alloc=Pool, Return=Array, AsyncEnumerable, Input=1GB: 2.95 (also got wrong results)
 PC=g4dn.8xlarge, InputStorage=RAM, OutputStorage=/dev/null Alloc=Array, Return=Memory, PLINQ=2, Streams=buffered, Writer=NewTask, Input=1GB, Build=Native: 0.875s
 PC=g4dn.8xlarge, InputStorage=RAM, OutputStorage=RAM Alloc=Array, Return=Memory, PLINQ=2, Streams=buffered, Writer=NewTask, Input=1GB, Build=Native: 1.58s
+PC=g4dn.8xlarge, InputStorage=RAM, OutputStorage=/dev/null Alloc=Pool, Return=Struct, PLINQ=2, Streams=buffered, Writer=NewTask, Input=1GB, Build=Native: 0.731s
+PC=g4dn.8xlarge, InputStorage=RAM, OutputStorage=RAM Alloc=Pool, Return=Struct, PLINQ=2, Streams=buffered, Writer=NewTask, Input=1GB, Build=Native: 1.422s
 
 TODO:
 
@@ -80,6 +82,13 @@ sudo yum install dotnet-sdk-7.0
 
 ### Tests
 
+Create a ramdisk:
+
+```bash
+sudo mkdir /mnt/ramdisk
+sudo mount -t tmpfs -o size=32g tmpfs /mnt/ramdisk
+```
+
 Copy the pcap file from S3:
 
 ```bash
@@ -89,13 +98,19 @@ aws s3 cp s3://<gs-delivery-s3-bucket>/<file>.pcap .
 Create a 1Gb chunk and copy it into RAM-based filesystem:
 
 ```bash
-head -c 1G <file>.pcap > /run/user/1000/GS_1G.pcap
+head -c 1G <file>.pcap > /mnt/ramdisk/GS_1G.pcap
 ```
 
-Run the test:
+Run the test (debug build):
 
 ```bash
-time dotnet run - < /run/user/1000/GS_1G.pcap >/dev/null
+time dotnet run - < /mnt/ramdisk/GS_1G.pcap >/dev/null
+```
+
+Run the test (native build):
+
+```bash
+time ./bin/Release/net7.0/linux-x64/publish/unpcap < /mnt/ramdisk/GS_1G.pcap > /dev/null 
 ```
 
 ### VITA Compression
