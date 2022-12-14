@@ -61,6 +61,46 @@ PC=Mac, InputStorage=SDD, Alloc=Array, Return=Memory, PLINQ=30, Streams=buffered
 PC=Mac, InputStorage=SDD, Alloc=Array, Return=Memory, PLINQ=3, Streams=buffered, Writer=NewTask, Input=1GB: 2.365
 PC=Mac, InputStorage=SDD, Alloc=Array, Return=Memory, PLINQ=None, Streams=buffered, Writer=NewTask, Input=1GB: 2.7
 PC=Mac, InputStorage=SDD, Alloc=Array, Return=Memory, PLINQ=2, Streams=buffered, Writer=NewTask, Input=1GB: 2.17
+PC=Mac, InputStorage=SDD, Alloc=Pool, Return=Array, AsyncEnumerable, Input=1GB: 2.95 (also got wrong results)
+
+TODO:
+
+* big machine testing: RAM input, Alloc=Pool
+
+* confirm correctness -> make a test on a smaller pcap (watch the last packet!!!)
+
+### .NET Install on AL2
+
+```bash
+sudo rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
+sudo yum install dotnet-sdk-7.0
+```
+
+### Tests
+
+Copy the pcap file from S3:
+
+```bash
+aws s3 cp s3://<gs-delivery-s3-bucket>/<file>.pcap .
+```
+
+Create a 1Gb chunk and copy it into RAM-based filesystem:
+
+```bash
+head -c 1G <file>.pcap > /run/user/1000/GS_1G.pcap
+```
+
+Run the test:
+
+```bash
+time dotnet run - < /run/user/1000/GS_1G.pcap >/dev/null
+```
+
+### VITA Compression
+
+lz4 - doesn't compress
+
+gzip - compression factor 0.89
 
 ### pcap examples
 
