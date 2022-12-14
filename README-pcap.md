@@ -62,10 +62,12 @@ PC=Mac, InputStorage=SDD, Alloc=Array, Return=Memory, PLINQ=3, Streams=buffered,
 PC=Mac, InputStorage=SDD, Alloc=Array, Return=Memory, PLINQ=None, Streams=buffered, Writer=NewTask, Input=1GB: 2.7
 PC=Mac, InputStorage=SDD, Alloc=Array, Return=Memory, PLINQ=2, Streams=buffered, Writer=NewTask, Input=1GB: 2.17
 PC=Mac, InputStorage=SDD, Alloc=Pool, Return=Array, AsyncEnumerable, Input=1GB: 2.95 (also got wrong results)
+PC=g4dn.8xlarge, InputStorage=RAM, OutputStorage=/dev/null Alloc=Array, Return=Memory, PLINQ=2, Streams=buffered, Writer=NewTask, Input=1GB, Build=Native: 0.875s
+PC=g4dn.8xlarge, InputStorage=RAM, OutputStorage=RAM Alloc=Array, Return=Memory, PLINQ=2, Streams=buffered, Writer=NewTask, Input=1GB, Build=Native: 1.58s
 
 TODO:
 
-* big machine testing: RAM input, Alloc=Pool
+* big machine testing: RAM input, Alloc=Pool, Use structs to pass around (check the Gen2 GC).
 
 * confirm correctness -> make a test on a smaller pcap (watch the last packet!!!)
 
