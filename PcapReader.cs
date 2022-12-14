@@ -37,10 +37,7 @@ public class PcapReader : IEnumerable<PcapRecord>
             var buffer = ArrayPool.Rent(packetLength);
 
             var bytesRead = ReadFull(input, buffer, packetLength);
-            // var record = bytesRead < packetLength ?
-            //     buffer[0..bytesRead]
-            //     : buffer;
-            yield return new PcapRecord(recordHeader, buffer, bytesRead);
+            yield return new PcapRecord(buffer, bytesRead);
         }
     }
 

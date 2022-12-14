@@ -1,15 +1,13 @@
 namespace unpcap;
 
-public class PcapRecord
+public struct PcapRecord
 {
-    public PcapRecordHeader Header {get; private set; }
     public byte[] Record {get; private set; }
 
     public int RecordLength {get; private set; }
 
-    public PcapRecord(PcapRecordHeader header, byte[] record, int recordLength)
+    public PcapRecord(byte[] record, int recordLength)
     {
-        Header = header;
         Record = record;
         RecordLength = recordLength;
     }
