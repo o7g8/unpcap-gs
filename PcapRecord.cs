@@ -5,9 +5,12 @@ public class PcapRecord
     public PcapRecordHeader Header {get; private set; }
     public byte[] Record {get; private set; }
 
-    public PcapRecord(PcapRecordHeader header, byte[] record)
+    public int RecordLength {get; private set; }
+
+    public PcapRecord(PcapRecordHeader header, byte[] record, int recordLength)
     {
         Header = header;
         Record = record;
+        RecordLength = recordLength;
     }
 }

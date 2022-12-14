@@ -1,24 +1,23 @@
 using System.Collections;
+using System.Buffers;
 
 namespace unpcap;
 
-// TODO: look into IEnumerableAsync<T>
 public class PcapReader : IEnumerable<PcapRecord>
 {
     private System.UInt32 capturedBytes;
     private readonly Stream input;
-    private bool noData = false;
 
     public MagicNumber ByteOrder { get; private set; }
     public LinkLayer LinkLayer { get; private set; }
+
+    public readonly ArrayPool<byte> ArrayPool = ArrayPool<byte>.Shared;
 
     public PcapReader(Stream input)
     {
         this.input = input;
         var (eof, header) = ReadFileHeader(input);
-        if(eof) {
-            noData = true;
-        } else {
+        if(!eof) {
             ByteOrder = header.MagicNumber;
             LinkLayer = header.Network;
             capturedBytes = header.SnapLen;
@@ -35,13 +34,13 @@ public class PcapReader : IEnumerable<PcapRecord>
             }
 
             var packetLength = (int)(recordHeader.InclLen);
-            var buffer = new byte[packetLength];
+            var buffer = ArrayPool.Rent(packetLength);
 
             var bytesRead = ReadFull(input, buffer, packetLength);
-            var record = bytesRead < packetLength ?
-                buffer[0..bytesRead]
-                : buffer;
-            yield return new PcapRecord(recordHeader, record);
+            // var record = bytesRead < packetLength ?
+            //     buffer[0..bytesRead]
+            //     : buffer;
+            yield return new PcapRecord(recordHeader, buffer, bytesRead);
         }
     }
 
@@ -94,33 +93,5 @@ public class PcapReader : IEnumerable<PcapRecord>
         }
         return length;
     }
-    # endregion
-
-    # region Async
-    async Task<PcapRecordHeader> ReadRecordHeaderAsync(Stream stream, byte[] buffer)
-    {
-        await ReadFullAsync(input, buffer, Constants.PcapRecordHeader_Length);
-        return Tools.ArrayToStructure<PcapRecordHeader>(buffer);
-    }
-
-    async Task<PcapFileHeader> ReadFileHeaderAsync(Stream stream, byte[] buffer)
-    {
-        await ReadFullAsync(input, buffer, Constants.PcapFileHeader_Length);
-        return Tools.ArrayToStructure<PcapFileHeader>(buffer);
-    }
-
-    async Task<int> ReadFullAsync(Stream stream, byte[] buffer, int length)
-    {
-        var bytesToRead = length;
-        var offset = 0;
-        while (bytesToRead > 0)
-        {
-            var bytesRead = await stream.ReadAsync(buffer, offset, bytesToRead);
-            bytesToRead = bytesToRead - bytesRead;
-            offset = offset + bytesRead;
-        }
-        return length;
-    }
-
     # endregion
 }
