@@ -13,14 +13,20 @@ public class PcapReader : IEnumerable<PcapRecord>
 
     public readonly ArrayPool<byte> ArrayPool = ArrayPool<byte>.Shared;
 
-    public PcapReader(Stream input)
+    public PcapReader(Stream input) : this(input, true)
+    {
+    }
+
+    public PcapReader(Stream input, bool hasHeader)
     {
         this.input = input;
-        var (eof, header) = ReadFileHeader(input);
-        if(!eof) {
-            ByteOrder = header.MagicNumber;
-            LinkLayer = header.Network;
-            capturedBytes = header.SnapLen;
+        if(hasHeader) {
+            var (eof, header) = ReadFileHeader(input);
+            if(!eof) {
+                ByteOrder = header.MagicNumber;
+                LinkLayer = header.Network;
+                capturedBytes = header.SnapLen;
+            }
         }
     }
 

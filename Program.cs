@@ -1,12 +1,11 @@
-﻿// See https://aka.ms/new-console-template for more information
-// If we want to use a span-like class in asynchronous programming we could take advantage of Memory<> and ReadOnlyMemory<>
-using System.Buffers;
+﻿using System.Buffers;
 using CommandLine;
 using unpcap;
 
 var hasHeader = true;
 var workers = 2;
 
+// NB! the parsing takes ~1 sec!!
 Parser.Default.ParseArguments<CommandLineOptions>(args)
       .WithParsed<CommandLineOptions>(o => {
            hasHeader = o.HasFileHeader;
@@ -19,17 +18,27 @@ Parser.Default.ParseArguments<CommandLineOptions>(args)
 using var stdin = new BufferedStream(Console.OpenStandardInput());
 using var stdout = new BufferedStream(Console.OpenStandardOutput());
 
-var reader = new PcapReader(stdin);
-
-var vitaRecords = reader
-    .AsParallel()
-    .AsOrdered()
-    .WithDegreeOfParallelism(2)
+var reader = new PcapReader(stdin, hasHeader);
+var vitaRecords = BuildPcapQuery(reader, workers)
     .Select(record => ExtractVita(record));
 
-// write to stream in separate task
+// write results in a separate task
 var writer = Task.Run(async () => await WriteResult(stdout, vitaRecords, reader.ArrayPool));
 writer.Wait();
+
+IEnumerable<PcapRecord> BuildPcapQuery(PcapReader reader, int parallelism) {
+    if(parallelism == 1) {
+        return reader;
+    }
+    var query = reader
+    .AsParallel()
+    .AsOrdered();
+
+    Console.Error.WriteLine($"using parallelism {parallelism}");
+    return parallelism == 0
+    ? query
+    : query.WithDegreeOfParallelism(parallelism);
+}
 
 VitaRecord ExtractVita(PcapRecord record)
 {
@@ -51,9 +60,9 @@ async Task WriteResult(BufferedStream stdout, IEnumerable<VitaRecord> query, Arr
 
 public class CommandLineOptions
 {
+    [Option('h', "with-pcap-file-header", Required = false, Default = true, HelpText = "Input stream has a PCAP file header")]
+    public bool HasFileHeader { get; set; }
+
     [Option('w', "workers", Required = false, Default = 2, HelpText = "Amount of workers.")]
     public int Workers { get; set; }
-
-    [Option('h', "with-pcap-file-header", Required = true, Default = true, HelpText = "Input stream has a PCAP file header")]
-    public bool HasFileHeader { get; set; }
 }
