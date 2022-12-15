@@ -31,7 +31,6 @@ IEnumerable<PcapRecord> BuildPcapQuery(PcapReader reader, int parallelism) {
     .AsParallel()
     .AsOrdered();
 
-    Console.Error.WriteLine($"using parallelism {parallelism}");
     return parallelism == 0
     ? query
     : query.WithDegreeOfParallelism(parallelism);

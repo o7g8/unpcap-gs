@@ -75,8 +75,22 @@ TODO:
 
 ### End-to-end test
 
+Prepare the list of S3 objects:
+
 ```bash
-cat s3objects.txt | ~/bin/reS3m -s 24 -w 60 -c 16777216 | ~/bin/unpcap  
+aws s3 ls <s3://bucket/> | grep 'pcap$' | awk '{print "<s3://bucket/>"$4}' > s3objects.txt
+```
+
+Dry run:
+
+```bash
+cat s3objects.txt | ~/bin/reS3m -s 24 -w 60 -c 16777216 2>debug.log | ~/bin/unpcap >/dev/null 
+```
+
+Send the data over TCP to `localhost:5001`:
+
+```bash
+cat s3objects.txt | ~/bin/reS3m -s 24 -w 60 -c 16777216 2>debug.log | ~/bin/unpcap | nc localhost 5001 
 ```
 
 ### .NET Install on AL2
