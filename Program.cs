@@ -2,17 +2,14 @@
 using CommandLine;
 using unpcap;
 
-var hasHeader = true;
+var hasHeader = false;
 var workers = 2;
 
 // NB! the parsing takes ~1 sec!!
 Parser.Default.ParseArguments<CommandLineOptions>(args)
       .WithParsed<CommandLineOptions>(o => {
-           hasHeader = o.HasFileHeader;
+           hasHeader = o.HasPcapFileHeader;
            workers = o.Workers;
-      })
-      .WithNotParsed<CommandLineOptions>(o => {
-           System.Environment.Exit(0);
       });
 
 using var stdin = new BufferedStream(Console.OpenStandardInput());
@@ -60,8 +57,8 @@ async Task WriteResult(BufferedStream stdout, IEnumerable<VitaRecord> query, Arr
 
 public class CommandLineOptions
 {
-    [Option('h', "with-pcap-file-header", Required = false, Default = true, HelpText = "Input stream has a PCAP file header")]
-    public bool HasFileHeader { get; set; }
+    [Option('p', "with-pcap-file-header", Required = false, Default = false, HelpText = "The input stream has PCAP file header")]
+    public bool HasPcapFileHeader { get; set; }
 
     [Option('w', "workers", Required = false, Default = 2, HelpText = "Amount of workers.")]
     public int Workers { get; set; }

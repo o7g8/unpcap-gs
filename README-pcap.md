@@ -69,9 +69,15 @@ PC=g4dn.8xlarge, InputStorage=RAM, OutputStorage=RAM Alloc=Pool, Return=Struct, 
 
 TODO:
 
-* big machine testing: RAM input, Alloc=Pool, Use structs to pass around (check the Gen2 GC).
+* [DONE] big machine testing: RAM input, Alloc=Pool, Use structs to pass around (check the Gen2 GC).
 
 * confirm correctness -> make a test on a smaller pcap (watch the last packet!!!)
+
+### End-to-end test
+
+```bash
+cat s3objects.txt | ~/bin/reS3m -s 24 -w 60 -c 16777216 | ~/bin/unpcap  
+```
 
 ### .NET Install on AL2
 
@@ -79,6 +85,34 @@ TODO:
 sudo rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
 sudo yum install dotnet-sdk-7.0
 ```
+
+### Build
+
+Build self-contained executable for Linux/x64:
+
+```bash
+dotnet publish -r linux-x64 -p:PublishSingleFile=true -c Release --self-contained true
+```
+
+for Linux/ARM64:
+
+```bash
+dotnet publish -r linux-arm64 -p:PublishSingleFile=true -c Release --self-contained true
+```
+
+for Windows:
+
+```bash
+dotnet publish -r win-x64 -p:PublishSingleFile=true -c Release --self-contained true
+```
+
+for Mac OS X/x64:
+
+```bash
+dotnet publish -r osx.12-x64 -p:PublishSingleFile=true -c Release --self-contained true
+```
+
+See more about Runtime Identifiers (RIDs) in <https://learn.microsoft.com/en-us/dotnet/core/rid-catalog>
 
 ### Tests
 
