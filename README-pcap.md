@@ -93,6 +93,37 @@ Send the data over TCP to `localhost:5001`:
 cat s3objects.txt | ~/bin/reS3m -s 24 -w 60 -c 16777216 2>debug.log | ~/bin/unpcap | nc localhost 5001 
 ```
 
+Measure the pipe througthput with `cpipe` (<https://www.unix.com/man-page/debian/1/cpipe/>) or `pv`:
+
+Install the tools.
+
+* on Amazon Linux 2 (`cpipe` is not available):
+
+```bash
+sudo amazon-linux-extras install epel -y
+sudo yum install pv
+```
+
+* On Ubuntu/Debian:
+
+```bash
+sudo apt install -y pv cpipe
+```
+
+Dry run (will show momentarily and average data rate in the pipeline) with `pv`:
+
+```bash
+cat s3objects.txt | ~/bin/reS3m -s 24 -w 60 -c 16777216 2>debug.log | ~/bin/unpcap | pv -ra  >/dev/null 
+```
+
+Dry run (will show momentarily and average data rate in the pipeline) with `cpipe`:
+
+```bash
+cat s3objects.txt | ~/bin/reS3m -s 24 -w 60 -c 16777216 2>debug.log | ~/bin/unpcap | pv -ra  >/dev/null 
+```
+
+To not overwhelm the receiver end of the pipeline (e.g. SDR), you limit the data rate in the pipeline by ether lowering down amount of workers `-w` and chink size `-c` in `reS3m` or using `pv` or `cpipe` which allow directly specify the rate limit.
+
 ### .NET Install on AL2
 
 ```bash
