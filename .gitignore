@@ -5,6 +5,7 @@
 
 mydocs
 s3obj*
+cpipe
 
 # User-specific files
 *.rsuser

@@ -97,7 +97,7 @@ Measure the pipe througthput with `cpipe` (<https://www.unix.com/man-page/debian
 
 Install the tools.
 
-* on Amazon Linux 2 (`cpipe` is not available):
+* on Amazon Linux 2 (only `pv` is available, you can copy `cpipe` from an Ubuntu/Debian machine):
 
 ```bash
 sudo amazon-linux-extras install epel -y
@@ -116,13 +116,37 @@ Dry run (will show momentarily and average data rate in the pipeline) with `pv`:
 cat s3objects.txt | ~/bin/reS3m -s 24 -w 60 -c 16777216 2>debug.log | ~/bin/unpcap | pv -ra  >/dev/null 
 ```
 
-Dry run (will show momentarily and average data rate in the pipeline) with `cpipe`:
+Dry run with `cpipe` (warning: it gives very verbose output):
 
 ```bash
-cat s3objects.txt | ~/bin/reS3m -s 24 -w 60 -c 16777216 2>debug.log | ~/bin/unpcap | pv -ra  >/dev/null 
+cat s3objects.txt | ~/bin/reS3m -s 24 -w 60 -c 16777216 2>debug.log | ~/bin/unpcap | cpipe -vr -vw -vt -p unpcap  >/dev/null 
 ```
 
 To not overwhelm the receiver end of the pipeline (e.g. SDR), you limit the data rate in the pipeline by ether lowering down amount of workers `-w` and chink size `-c` in `reS3m` or using `pv` or `cpipe` which allow directly specify the rate limit.
+
+* Test with `ncat` over TCP:
+
+Start a `ncat` server:
+
+```bash
+ncat -l localhost 5050 | pv -ra  >/dev/null
+```
+
+Start the pipeline with `ncat` sending data to the server:
+
+```bash
+cat s3objects.txt | ~/bin/reS3m -s 24 -w 60 -c 16777216 2>debug.log | ~/bin/unpcap | pv -ra | ncat localhost 5050
+```
+
+Performance on `g4dn.8xlarge`:
+
+* `reS3m > /dev/null` = 969 MiB/s - 1.1 GiB/s = 8.13-9.22 Gbps
+
+* `reS3m | unpcap >/dev/null` = 913-920 MiB/s = 7.66-7.72 Gbps
+
+* `reS3m | unpcap | ncat localhost (TCP)` = 655 MiB/s = 5.5 Gbps. The 'server' end of `nc` shows 499 MiB/s. 
+
+Conversions are done with <https://www.convertunits.com/from/mebibyte/second/to/Gbps>.
 
 ### .NET Install on AL2
 
