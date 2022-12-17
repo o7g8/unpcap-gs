@@ -93,7 +93,7 @@ Send the data over TCP to `localhost:5001`:
 cat s3objects.txt | ~/bin/reS3m -s 24 -w 60 -c 16777216 2>debug.log | ~/bin/unpcap | nc localhost 5001 
 ```
 
-Measure the pipe througthput with `cpipe` (<https://www.unix.com/man-page/debian/1/cpipe/>) or `pv`:
+Measure the pipe throughput with `cpipe` (<https://www.unix.com/man-page/debian/1/cpipe/>) or `pv`:
 
 Install the tools.
 
@@ -144,9 +144,24 @@ Performance on `g4dn.8xlarge`:
 
 * `reS3m | unpcap >/dev/null` = 913-920 MiB/s = 7.66-7.72 Gbps
 
-* `reS3m | unpcap | ncat localhost (TCP)` = 655 MiB/s = 5.5 Gbps. The 'server' end of `nc` shows 499 MiB/s. 
+* `reS3m | unpcap | ncat localhost (TCP)` = 655 MiB/s = 5.5 Gbps. The 'server' end of `nc` shows 499 MiB/s.
 
 Conversions are done with <https://www.convertunits.com/from/mebibyte/second/to/Gbps>.
+
+### TCP tuning with kernel parameters
+
+* <https://cromwell-intl.com/open-source/performance-tuning/tcp.html>
+
+* <https://parthmistry241.medium.com/tuning-linux-network-stack-with-examples-part-2-6ff94330b7b6> - use `ss -tm` to monitor TCP sessions
+
+* <https://blog.cloudflare.com/optimizing-tcp-for-high-throughput-and-low-latency/>
+
+* <https://dropbox.tech/infrastructure/optimizing-web-servers-for-high-throughput-and-low-latency>
+
+* <https://legacy.netdevconf.info/1.2/papers/bbr-netdev-1.2.new.new.pdf>
+
+* <http://www.linux-admins.net/2010/09/linux-tcp-tuning.html>
+
 
 ### .NET Install on AL2
 

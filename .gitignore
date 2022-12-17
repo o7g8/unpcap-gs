@@ -6,6 +6,10 @@
 mydocs
 s3obj*
 cpipe
+*.pcap
+*.pcap.*
+*.vita
+*.vita.*
 
 # User-specific files
 *.rsuser
